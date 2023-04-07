@@ -3,7 +3,6 @@ package com.logispin.wallet.api;
 import com.logispin.wallet.dto.CreateWalletDto;
 import com.logispin.wallet.dto.TransactionDto;
 import com.logispin.wallet.dto.WalletDto;
-import com.logispin.wallet.exceptions.ResourceNotFoundException;
 import com.logispin.wallet.models.TransactionType;
 import com.logispin.wallet.services.TransactionService;
 import com.logispin.wallet.services.WalletService;
@@ -51,23 +50,19 @@ public class WalletController {
 
   @GetMapping("/{walletId}")
   public ResponseEntity<EntityModel<WalletDto>> getWalletById(@PathVariable UUID walletId) {
-    try {
-      WalletDto wallet = walletService.getWalletById(walletId);
-      Link selfLink =
-          WebMvcLinkBuilder.linkTo(
-                  WebMvcLinkBuilder.methodOn(WalletController.class).getWalletById(walletId))
-              .withSelfRel();
-      Link transactionsLink =
-          WebMvcLinkBuilder.linkTo(
-                  WebMvcLinkBuilder.methodOn(WalletController.class)
-                      .getTransactionsByWalletId(walletId))
-              .withRel("transactions");
+    WalletDto wallet = walletService.getWalletById(walletId);
+    Link selfLink =
+        WebMvcLinkBuilder.linkTo(
+                WebMvcLinkBuilder.methodOn(WalletController.class).getWalletById(walletId))
+            .withSelfRel();
+    Link transactionsLink =
+        WebMvcLinkBuilder.linkTo(
+                WebMvcLinkBuilder.methodOn(WalletController.class)
+                    .getTransactionsByWalletId(walletId))
+            .withRel("transactions");
 
-      EntityModel<WalletDto> walletResource = EntityModel.of(wallet, selfLink, transactionsLink);
-      return ResponseEntity.ok(walletResource);
-    } catch (ResourceNotFoundException e) {
-      return ResponseEntity.notFound().build();
-    }
+    EntityModel<WalletDto> walletResource = EntityModel.of(wallet, selfLink, transactionsLink);
+    return ResponseEntity.ok(walletResource);
   }
 
   @PutMapping("/{walletId}/transactions")
