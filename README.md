@@ -19,7 +19,7 @@ In summary, this wallet service provides a flexible and extensible architecture 
 
 1. Clone the repository:
 
-```git clone <REPOSITORY_URL>```
+```git clone git@github.com:OmexIT/wallet-service.git```
 
 2. Change into the project directory:
 
