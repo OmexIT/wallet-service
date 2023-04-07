@@ -5,9 +5,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class WalletServiceApplicationTests {
-
-	@Test
-	void contextLoads() {
-	}
-
+  @Test
+  void contextLoads() {}
 }

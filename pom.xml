@@ -15,6 +15,11 @@
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>17</java.version>
+		<org.mapstruct.version>1.5.3.Final</org.mapstruct.version>
+		<google.format.version>1.16.0</google.format.version>
+		<spotless-maven-plugin.version>2.35.0</spotless-maven-plugin.version>
+		<coverage.min>0.90</coverage.min>
+		<jacoco.version>0.8.8</jacoco.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -25,7 +30,43 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${org.mapstruct.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-hateoas</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.retry</groupId>
+			<artifactId>spring-retry</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
+			<version>7.3</version>
+		</dependency>
 
+
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -39,6 +80,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -55,6 +101,146 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.10.1</version>
+				<configuration>
+					<source>${java.version}</source> <!-- depending on your project -->
+					<target>${java.version}</target> <!-- depending on your project -->
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${org.mapstruct.version}</version>
+						</path>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+						<!-- This is needed when using Lombok 1.18.16 and above -->
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok-mapstruct-binding</artifactId>
+							<version>0.2.0</version>
+						</path>
+						<!-- other annotation processors -->
+					</annotationProcessorPaths>
+					<compilerArgs>
+						<arg>-Amapstruct.defaultComponentModel=spring</arg>
+						<arg>
+							-Amapstruct.suppressGeneratorTimestamp=true
+						</arg>
+						<arg>
+							-Amapstruct.suppressGeneratorVersionInfoComment=true
+						</arg>
+						<arg>
+							-Amapstruct.verbose=true
+						</arg>
+					</compilerArgs>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>${spotless-maven-plugin.version}</version>
+				<configuration>
+					<java>
+						<includes>
+							<!-- Include all java files in "src" folder -->
+							<include>**/*.java</include>
+						</includes>
+						<googleJavaFormat>
+							<!-- Optional, available versions: https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.google.googlejavaformat%22%20AND%20a%3A%22google-java-format%22 -->
+							<version>${google.format.version}</version>
+							<!-- Optional, available versions: GOOGLE, AOSP https://github.com/google/google-java-format/blob/master/core/src/main/java/com/google/googlejavaformat/java/JavaFormatterOptions.java -->
+							<style>GOOGLE</style>
+							<groupArtifact>com.google.googlejavaformat:google-java-format</groupArtifact>
+						</googleJavaFormat>
+						<removeUnusedImports/>
+						<formatAnnotations />
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>apply</goal>
+						</goals>
+						<phase>compile</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<configuration>
+					<rules>
+						<rule implementation="org.jacoco.maven.RuleConfiguration">
+							<element>CLASS</element>
+							<excludes>
+								<exclude>com.logispin.wallet.WalletServiceApplication</exclude>
+								<exclude>com.logispin.wallet.models.*</exclude>
+								<exclude>com.logispin.wallet.api.error.*</exclude>
+								<exclude>com.logispin.wallet.infrastructure.LoggingAspect</exclude>
+							</excludes>
+							<limits>
+								<limit implementation="org.jacoco.report.check.Limit">
+									<counter>INSTRUCTION</counter>
+									<value>COVEREDRATIO</value>
+									<minimum>${coverage.min}</minimum>
+								</limit>
+							</limits>
+						</rule>
+					</rules>
+				</configuration>
+				<executions>
+					<execution>
+						<id>jacoco-initialize</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<!-- attached to Maven test phase -->
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>io.github.git-commit-id</groupId>
+				<artifactId>git-commit-id-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+						<configuration>
+							<verbose>true</verbose>
+							<dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
+							<generateGitPropertiesFile>true</generateGitPropertiesFile>
+							<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
+							</generateGitPropertiesFilename>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<verbose>true</verbose>
+					<dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
+					<generateGitPropertiesFile>true</generateGitPropertiesFile>
+					<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
+					</generateGitPropertiesFilename>
+					<failOnNoGitDirectory>false</failOnNoGitDirectory>
+					<failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
 				</configuration>
 			</plugin>
 		</plugins>
